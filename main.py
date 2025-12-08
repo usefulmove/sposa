@@ -22,7 +22,6 @@ def sposa():
 
         sleep(1.0)
 
-
         for word in words:
             # clear line properly
             sys.stdout.write("\r\033[2K" + f"  {word}  ")
@@ -34,14 +33,13 @@ def sposa():
             if word and word[-1] in ".,:!?;":
                 sleep(0.280)
 
+        sleep(1.2)
     finally:
         # show cursor again
         sys.stdout.write("\033[?25h")
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-
-    sleep(1.0)
 
 
 if __name__ == "__main__":
