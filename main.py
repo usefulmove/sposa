@@ -4,7 +4,7 @@ from time import sleep
 # from rich import Console
 
 
-def sposa():
+def sposa() -> None:
     filename: str = sys.argv[1]
 
     with open(filename, "r") as file:
@@ -17,17 +17,10 @@ def sposa():
     sys.stdout.flush()
 
     try:
-        sys.stdout.write("\r\033[2K" + f"  {words[0]}  ")
-        sys.stdout.flush()
-
-        sleep(1.0)
+        disp_dynamic(words[0], 1.0)
 
         for word in words:
-            # clear line properly
-            sys.stdout.write("\r\033[2K" + f"  {word}  ")
-            sys.stdout.flush()
-
-            sleep(0.318)
+            disp_dynamic(word, 0.318)
 
             # increase delay for punctuation
             if word and word[-1] in ".,:!?;":
@@ -35,10 +28,19 @@ def sposa():
 
         sleep(1.2)
     finally:
-        # show cursor again
         sys.stdout.write("\033[?25h")
+        # show cursor again
         sys.stdout.write("\n")
         sys.stdout.flush()
+
+
+def disp_dynamic(message: str, secs: float) -> None:
+    for i, _ in enumerate(message, 1):
+        sys.stdout.write("\r\033[2K" + f"  {message[:i]}  ")
+        sys.stdout.flush()
+        sleep(0.030)
+
+    sleep(secs)
 
 
 
