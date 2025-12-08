@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
 from time import sleep
-# from rich import Console
+
+
+# read it to me
 
 
 def sposa() -> None:
@@ -19,8 +21,8 @@ def sposa() -> None:
     try:
         disp_dynamic(words[0], 1.0)
 
-        for word in words:
-            disp_dynamic(word, 0.318)
+        for word in words[1:]:
+            disp_dynamic(word, 0.418)
 
             # increase delay for punctuation
             if word and word[-1] in ".,:!?;":
@@ -38,7 +40,7 @@ def disp_dynamic(message: str, secs: float) -> None:
     for i, _ in enumerate(message, 1):
         sys.stdout.write("\r\033[2K" + f"  {message[:i]}  ")
         sys.stdout.flush()
-        sleep(0.030)
+        sleep(0.018)
 
     sleep(secs)
 
