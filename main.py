@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import sys
 from time import sleep
 
@@ -9,9 +10,9 @@ def sposa() -> None:
     filename: str = sys.argv[1]
 
     with open(filename, "r") as file:
-        content = file.read()
+        words = file.read().split()
 
-    words = content.split()
+    os.system("clear")
 
     print("")
 
@@ -23,13 +24,13 @@ def sposa() -> None:
         disp_dynamic(words[0], 1.0)
 
         for word in words[1:]:
-            disp_dynamic(word, 0.418)
+            disp_dynamic(word, 0.318)
 
             # increase delay for punctuation
             if word and word[-1] in ".:!?":
-                sleep(0.280)
+                sleep(0.360)
             elif word and word[-1] in ",;":
-                sleep(0.240)
+                sleep(0.320)
 
         sleep(1.2)
     finally:
@@ -43,9 +44,9 @@ def sposa() -> None:
 
 def disp_dynamic(message: str, secs: float) -> None:
     for i, _ in enumerate(message, 1):
-        sys.stdout.write("\r\033[2K" + f"    {message[:i]}")
+        sys.stdout.write("\r\033[2K" + f"    {message[:i].lower()}")
         sys.stdout.flush()
-        sleep(0.018)
+        sleep(0.013)
 
     sleep(secs)
 
