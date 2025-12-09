@@ -22,10 +22,10 @@ def sposa() -> None:
     sys.stdout.flush()
 
     try:
-        disp_dynamic(words[0], 1.0)
+        read_word(words[0], 1.0)
 
         for word in words[1:]:
-            disp_dynamic(word, 0.318)
+            read_word(word, 0.318)
 
             # increase delay for punctuation
             if word and word[-1] in ".:!?":
@@ -43,7 +43,7 @@ def sposa() -> None:
     print("")
 
 
-def disp_dynamic(message: str, secs: float) -> None:
+def read_word(message: str, secs: float) -> None:
     for i, _ in enumerate(message, 1):
         sys.stdout.write("\r\033[2K" + f"    {message[:i]}_")
         sys.stdout.flush()
@@ -51,7 +51,7 @@ def disp_dynamic(message: str, secs: float) -> None:
 
     sleep(secs)
 
-    sys.stdout.write("\r\033[2K" + f"    {message[:i]} ")
+    sys.stdout.write("\r\033[2K" + f"    {message} ")
     sys.stdout.flush()
 
 
