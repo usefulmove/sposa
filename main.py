@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
 from time import sleep
@@ -9,8 +9,9 @@ def sposa() -> None:
 
     filename: str = sys.argv[1]
 
+    words: tuple[str, ...]
     with open(filename, "r") as file:
-        words = file.read().split()
+        words = tuple( word.lower() for word in file.read().split() )
 
     os.system("clear")
 
@@ -44,7 +45,7 @@ def sposa() -> None:
 
 def disp_dynamic(message: str, secs: float) -> None:
     for i, _ in enumerate(message, 1):
-        sys.stdout.write("\r\033[2K" + f"    {message[:i].lower()}")
+        sys.stdout.write("\r\033[2K" + f"    {message[:i]}")
         sys.stdout.flush()
         sleep(0.013)
 
