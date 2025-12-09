@@ -45,9 +45,9 @@ def sposa() -> None:
 
 def disp_dynamic(message: str, secs: float) -> None:
     for i, _ in enumerate(message, 1):
-        sys.stdout.write("\r\033[2K" + f"    {message[:i]}")
+        sys.stdout.write("\r\033[2K" + f"    {message[:i]}_")
         sys.stdout.flush()
-        sleep(0.013)
+        sleep(0.104)
 
     sleep(secs)
 
