@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Label, ProgressBar
-from textual.containers import Container
+from textual.containers import Container, Horizontal
 from textual.reactive import reactive
 import sys
 import asyncio
@@ -43,9 +43,25 @@ class SposaApp(App):
         height: auto;
     }
     
-    ProgressBar {
+    #status-bar {
         dock: bottom;
-        margin: 1 2;
+        height: 3;
+        width: 100%;
+        background: $surface0;
+        padding: 0 1;
+    }
+
+    #speed-indicator {
+        width: 20;
+        content-align: center middle;
+        color: $mauve;
+        background: $surface0;
+        height: 100%;
+    }
+
+    ProgressBar {
+        width: 1fr;
+        height: 100%;
         background: $surface0;
         color: $mauve;
     }
@@ -127,11 +143,6 @@ class SposaApp(App):
             return
 
         word = self.words[self.current_index]
-
-        # Typing effect logic could go here, but let's implement the base read first
-        # to match the mental model of 'Textual' as non-blocking.
-        # We'll simulate the "typing" and "waiting" phases.
-
         self.animate_typing(word)
 
     def animate_typing(self, word: str, char_idx: int = 1) -> None:
@@ -172,19 +183,35 @@ class SposaApp(App):
         try:
             self.query_one("#reader-display", Label).update(value)
         except Exception:
-            # Widget might not be mounted yet
             pass
 
     def watch_current_index(self, value: int) -> None:
         """Update progress bar when index changes."""
-        self.query_one(ProgressBar).progress = value
+        try:
+            self.query_one(ProgressBar).progress = value
+        except Exception:
+            pass
+
+    def watch_wpm_multiplier(self, value: float) -> None:
+        """Update speed indicator."""
+        try:
+            wpm = int(188 * value)
+            self.query_one("#speed-indicator", Label).update(
+                f"{value:.1f}x ({wpm} WPM)"
+            )
+        except Exception:
+            pass
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
         with Container(id="display-container"):
             yield Label(self.display_text, id="reader-display")
-        yield ProgressBar(total=100, show_eta=True)
+
+        with Horizontal(id="status-bar"):
+            yield Label("1.0x (188 WPM)", id="speed-indicator")
+            yield ProgressBar(total=100, show_eta=True)
+
         yield Footer()
 
     def action_toggle_dark(self) -> None:
@@ -201,19 +228,15 @@ class SposaApp(App):
 
     def action_increase_speed(self) -> None:
         self.wpm_multiplier += 0.1
-        self.notify(f"Speed: {self.wpm_multiplier:.1f}x")
 
     def action_decrease_speed(self) -> None:
         self.wpm_multiplier = max(0.1, self.wpm_multiplier - 0.1)
-        self.notify(f"Speed: {self.wpm_multiplier:.1f}x")
 
     def action_prev_word(self) -> None:
         self.current_index = max(0, self.current_index - 10)
-        self.notify("Back 10 words")
 
     def action_next_word(self) -> None:
         self.current_index = min(len(self.words) - 1, self.current_index + 10)
-        self.notify("Forward 10 words")
 
 
 if __name__ == "__main__":
