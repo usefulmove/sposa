@@ -95,7 +95,6 @@ class SposaApp(App):
         text-align: center;
         content-align: center middle;
         width: 100%;
-        text-style: bold;
         color: $text;
         height: auto;
     }
