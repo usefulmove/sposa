@@ -1,37 +1,45 @@
 # AGENTS.md - Development Guidelines
 
+## Project Overview
+Sposa is an RSVP (Rapid Serial Visual Presentation) reader application built with Python and [Textual](https://textual.textualize.io/).
+It has migrated from a raw `sys.stdout` prototype to a robust, event-driven TUI application.
+
+## Running the Application
+- Run the TUI: `uv run python sposa_tui.py <filename>`
+- Example: `uv run python sposa_tui.py meditations`
+- Dependency Management: Uses `uv` for package management.
+
 ## Build/Lint/Test Commands
-- Run tests: `python -m pytest` (if pytest is used)
-- Linting: `ruff check .` (if using ruff)
+- Run tests: `python -m pytest`
+- Linting: `ruff check .`
 - Formatting: `ruff format .`
 - Type checking: `ty check .`
 
 ## Code Style Guidelines
-- Use Python 3.13+ syntax when possible
-- Follow PEP 8 for general style guide
-- Use type hints for all function parameters and return values
-- Use descriptive variable names in snake_case
-- Keep functions small and focused
-- Use docstrings for all public functions and classes
+- Use Python 3.13+ syntax.
+- Follow PEP 8.
+- Use type hints for all function parameters and return values.
+- **Textual Guidelines**:
+    - Use `CSS` class attributes or `.tcss` files for styling.
+    - Use `reactive` attributes for state that drives the UI.
+    - Avoid blocking calls like `time.sleep()`; use `self.set_timer()` or `self.set_interval()`.
+    - Use specific `Action` methods (e.g., `action_quit`) for keybindings.
 
 ## Import Guidelines
-- Use standard library imports first, then third-party, then local imports
-- Group imports at the top of each file
-- Use explicit imports (avoid `from module import *`)
+- Use standard library imports first, then third-party (like `textual`), then local imports.
+- Group imports at the top of each file.
+- Use explicit imports (avoid `from module import *`).
 
 ## Error Handling
-- Use specific exception handling rather than broad except clauses
-- Always include meaningful error messages
-- Handle errors at appropriate levels in the code
+- Use specific exception handling rather than broad except clauses.
+- Handle file I/O errors gracefully (e.g., when loading the text file).
 
 ## Testing
-- Write unit tests for all new functionality
-- Use pytest as the testing framework
-- Place test files in a `tests` directory
+- Write unit tests for logic where possible.
+- TUI interaction tests can be complex; prioritize testing the underlying logic (e.g., text splitting, delay calculations).
 - Run a single test with: `python -m pytest -xvs tests/test_specific.py::test_function`
 
 ## Code Quality
-- Keep functions under 50 lines when possible
-- Maintain 100% test coverage for new features
-- Run linters before committing
-- Format code before pushing
+- Keep functions small and focused.
+- Run linters (`ruff`) before committing.
+- Format code (`ruff format`) before pushing.
