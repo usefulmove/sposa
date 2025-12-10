@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Label, ProgressBar
-from textual.containers import Container
+from textual.widgets import Footer, Label, ProgressBar
+from textual.containers import Container, Vertical
 from textual.reactive import reactive
 import sys
 
@@ -13,11 +13,11 @@ class SposaApp(App):
 
     CSS = """
     /* Catppuccin Mocha Theme */
-    $base: #1e1e2e;
+    $base: #191724;
     $text: #cdd6f4;
     $mauve: #cba6f7;
-    $surface0: #313244;
-    $overlay0: #6c7086;
+    $surface0: #191724;
+    $overlay0: #444155;
     $red: #f38ba8;
     $green: #a6e3a1;
     $lavender: #b4befe;
@@ -46,49 +46,48 @@ class SposaApp(App):
         height: auto;
     }
     
-    #status-bar {
+    #bottom-section {
         dock: bottom;
         height: 3;
         width: 100%;
-        background: $surface0;
-        layers: base overlay;
     }
 
     #speed-indicator {
-        layer: overlay;
+        height: 1;
         width: 100%;
-        height: 100%;
         content-align: center middle;
         color: $overlay0;
-        background: 0%;
         text-align: center;
+        background: $surface0;
     }
 
     ProgressBar {
-        layer: base;
         width: 100%;
-        height: 100%;
-        padding: 0;
+        height: 1;
     }
     
     Bar {
         width: 100%;
-        height: 100%;
         background: $surface0;
     }
     
     Bar > .bar--bar {
         color: $mauve;
+        background: $overlay0;
     }
     
     Bar > .bar--complete {
+        color: $green;
+        background: $surface0;
+    }
+    
+    Bar > .bar--indeterminate {
         color: $mauve;
+        background: $surface0;
     }
 
-    Header {
-        background: $surface0;
-        color: $mauve;
-        dock: top;
+    #bottom-section Footer {
+        height: 1;
     }
 
     Footer {
@@ -109,12 +108,12 @@ class SposaApp(App):
     """
 
     BINDINGS = [
-        ("q", "quit", "Quit"),
-        ("space", "toggle_pause", "Play/Pause"),
-        ("up", "increase_speed", "Faster"),
-        ("down", "decrease_speed", "Slower"),
-        ("left", "prev_word", "Back"),
-        ("right", "next_word", "Forward"),
+        ("q", "quit", "quit"),
+        ("space", "toggle_pause", "play/pause"),
+        ("up", "increase_speed", "faster"),
+        ("down", "decrease_speed", "slower"),
+        ("left", "prev_word", "back"),
+        ("right", "next_word", "forward"),
         ("h", "prev_word", None),
         ("l", "next_word", None),
         ("k", "increase_speed", None),
@@ -229,22 +228,20 @@ class SposaApp(App):
         try:
             wpm = int(188 * value)
             self.query_one("#speed-indicator", Label).update(
-                f"{value:.1f}x ({wpm} WPM)"
+                f"{value:.1f}x ({wpm} wpm)"
             )
         except Exception:
             pass
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
-        yield Header()
         with Container(id="display-container"):
             yield Label(self.display_text, id="reader-display")
 
-        with Container(id="status-bar"):
+        with Vertical(id="bottom-section"):
+            yield Label("1.0x (188 wpm)", id="speed-indicator")
             yield ProgressBar(total=100, show_eta=False, show_percentage=False)
-            yield Label("1.0x (188 WPM)", id="speed-indicator")
-
-        yield Footer()
+            yield Footer()
 
     async def action_quit(self) -> None:
         self.exit()
