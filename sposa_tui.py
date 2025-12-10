@@ -85,17 +85,20 @@ class SposaApp(App):
 
     BINDINGS = [
         ("q", "quit", "Quit"),
-        ("d", "toggle_dark", "Toggle Dark Mode"),
         ("space", "toggle_pause", "Play/Pause"),
         ("up", "increase_speed", "Faster"),
         ("down", "decrease_speed", "Slower"),
         ("left", "prev_word", "Back"),
         ("right", "next_word", "Forward"),
+        ("h", "prev_word", None),
+        ("l", "next_word", None),
+        ("k", "increase_speed", None),
+        ("j", "decrease_speed", None),
     ]
 
     # Reactive state
     display_text = reactive("")
-    is_paused = reactive(False)
+    is_paused = reactive(True)
     wpm_multiplier = reactive(1.0)
     current_index = reactive(0)
 
@@ -120,6 +123,9 @@ class SposaApp(App):
                 "file",
             ]
 
+        if self.words:
+            self.display_text = self.words[0]
+
         self.query_one(ProgressBar).total = len(self.words)
         self.run_reader()
 
@@ -139,7 +145,8 @@ class SposaApp(App):
             return
 
         if self.current_index >= len(self.words):
-            self.display_text = "Done."
+            self.is_paused = True
+            self.set_timer(0.1, self.process_step)
             return
 
         word = self.words[self.current_index]
@@ -161,7 +168,7 @@ class SposaApp(App):
             )
         else:
             # Word complete: "word "
-            self.display_text = word
+            self.display_text = word + " "
 
             # Calculate wait time based on original logic
             delay = 0.318
@@ -210,24 +217,22 @@ class SposaApp(App):
 
         with Horizontal(id="status-bar"):
             yield Label("1.0x (188 WPM)", id="speed-indicator")
-            yield ProgressBar(total=100, show_eta=True)
+            yield ProgressBar(total=100, show_eta=False)
 
         yield Footer()
-
-    def action_toggle_dark(self) -> None:
-        """An action to toggle dark mode."""
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"
-        )
 
     def action_quit(self) -> None:
         self.exit()
 
     def action_toggle_pause(self) -> None:
-        self.is_paused = not self.is_paused
+        if self.current_index >= len(self.words):
+            self.current_index = 0
+            self.is_paused = False
+        else:
+            self.is_paused = not self.is_paused
 
     def action_increase_speed(self) -> None:
-        self.wpm_multiplier += 0.1
+        self.wpm_multiplier = min(2.8, self.wpm_multiplier + 0.1)
 
     def action_decrease_speed(self) -> None:
         self.wpm_multiplier = max(0.1, self.wpm_multiplier - 0.1)
