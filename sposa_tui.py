@@ -2,7 +2,57 @@ from textual.app import App, ComposeResult
 from textual.widgets import Footer, Label, ProgressBar
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
+from rich.text import Text
 import sys
+
+# Catppuccin Mocha theme colors
+MAUVE = "#cba6f7"
+
+
+def get_orp_index(word: str) -> int:
+    """Calculate the Optimal Recognition Point (ORP) index for a word.
+
+    The ORP is the center letter of the word, which is where the eye
+    naturally focuses for fastest recognition.
+
+    Args:
+        word: The word to calculate ORP for.
+
+    Returns:
+        The index of the ORP letter (0-based).
+    """
+    if not word:
+        return 0
+    return (len(word) - 1) // 2
+
+
+def format_word_with_orp(word: str) -> Text:
+    """Format a word with the ORP letter dimmed.
+
+    Args:
+        word: The word to format.
+
+    Returns:
+        A Rich Text object with the ORP letter dimmed.
+    """
+    if not word:
+        return Text("")
+
+    orp_idx = get_orp_index(word)
+    text = Text()
+
+    # Add characters before ORP
+    if orp_idx > 0:
+        text.append(word[:orp_idx])
+
+    # Add the ORP letter (highlighted)
+    text.append(word[orp_idx], style=MAUVE)
+
+    # Add characters after ORP
+    if orp_idx < len(word) - 1:
+        text.append(word[orp_idx + 1 :])
+
+    return text
 
 
 class SposaApp(App):
@@ -121,7 +171,7 @@ class SposaApp(App):
     ]
 
     # Reactive state
-    display_text: reactive[str] = reactive("")
+    display_text: reactive[Text] = reactive(Text)
     is_paused: reactive[bool] = reactive(True)
     wpm_multiplier: reactive[float] = reactive(1.0)
     current_index: reactive[int] = reactive(0)
@@ -148,7 +198,7 @@ class SposaApp(App):
             ]
 
         if self.words:
-            self.display_text = self.words[0]
+            self.display_text = format_word_with_orp(self.words[0])
 
         self.query_one(ProgressBar).total = len(self.words)
         self.run_reader()
@@ -184,7 +234,9 @@ class SposaApp(App):
 
         # Show typing state: "wor_"
         if char_idx <= len(word):
-            self.display_text = f"{word[:char_idx]}_"
+            partial = word[:char_idx]
+            self.display_text = format_word_with_orp(partial)
+            self.display_text.append("_")
             # 0.031s per character delay from original script
             self.set_timer(
                 0.031 / self.wpm_multiplier,
@@ -192,7 +244,8 @@ class SposaApp(App):
             )
         else:
             # Word complete: "word "
-            self.display_text = word + " "
+            self.display_text = format_word_with_orp(word)
+            self.display_text.append(" ")
 
             # Calculate wait time based on original logic
             delay = 0.318
@@ -209,7 +262,7 @@ class SposaApp(App):
             self.current_index += 1
             self.set_timer(delay / self.wpm_multiplier, self.process_step)
 
-    def watch_display_text(self, value: str) -> None:
+    def watch_display_text(self, value: Text) -> None:
         """Update the label when text changes."""
         try:
             self.query_one("#reader-display", Label).update(value)
