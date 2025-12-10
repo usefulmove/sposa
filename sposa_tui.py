@@ -5,9 +5,6 @@ from textual.reactive import reactive
 from rich.text import Text
 import sys
 
-# Catppuccin Mocha theme colors
-MAUVE = "#cba6f7"
-
 
 def get_orp_index(word: str) -> int:
     """Calculate the Optimal Recognition Point (ORP) index for a word.
@@ -46,7 +43,7 @@ def format_word_with_orp(word: str) -> Text:
         text.append(word[:orp_idx])
 
     # Add the ORP letter (highlighted)
-    text.append(word[orp_idx], style=MAUVE)
+    text.append(word[orp_idx], style="#82899c")
 
     # Add characters after ORP
     if orp_idx < len(word) - 1:
