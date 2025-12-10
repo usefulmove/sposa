@@ -1,13 +1,15 @@
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Label, ProgressBar
-from textual.containers import Container, Horizontal
+from textual.containers import Container
 from textual.reactive import reactive
 import sys
-import asyncio
 
 
 class SposaApp(App):
     """A Textual app for RSVP reading."""
+
+    TITLE = "Sposa"
+    ENABLE_COMMAND_PALETTE = False
 
     CSS = """
     /* Catppuccin Mocha Theme */
@@ -15,6 +17,7 @@ class SposaApp(App):
     $text: #cdd6f4;
     $mauve: #cba6f7;
     $surface0: #313244;
+    $overlay0: #6c7086;
     $red: #f38ba8;
     $green: #a6e3a1;
     $lavender: #b4befe;
@@ -48,21 +51,33 @@ class SposaApp(App):
         height: 3;
         width: 100%;
         background: $surface0;
-        padding: 0 1;
+        layers: base overlay;
     }
 
     #speed-indicator {
-        width: 20;
-        content-align: center middle;
-        color: $mauve;
-        background: $surface0;
+        layer: overlay;
+        width: 100%;
         height: 100%;
+        content-align: center middle;
+        color: $overlay0;
+        background: 0%;
+        text-align: center;
     }
 
     ProgressBar {
-        width: 1fr;
+        layer: base;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+    }
+    
+    Bar {
+        width: 100%;
         height: 100%;
         background: $surface0;
+    }
+    
+    Bar > .bar--bar {
         color: $mauve;
     }
     
@@ -80,6 +95,16 @@ class SposaApp(App):
         background: $surface0;
         color: $lavender;
         dock: bottom;
+        align-horizontal: center;
+    }
+    
+    Footer > .footer--key {
+        background: $surface0;
+        color: $lavender;
+    }
+    
+    Footer > .footer--description {
+        color: $overlay0;
     }
     """
 
@@ -97,10 +122,10 @@ class SposaApp(App):
     ]
 
     # Reactive state
-    display_text = reactive("")
-    is_paused = reactive(True)
-    wpm_multiplier = reactive(1.0)
-    current_index = reactive(0)
+    display_text: reactive[str] = reactive("")
+    is_paused: reactive[bool] = reactive(True)
+    wpm_multiplier: reactive[float] = reactive(1.0)
+    current_index: reactive[int] = reactive(0)
 
     # Internal state
     words: list[str] = []
@@ -215,13 +240,13 @@ class SposaApp(App):
         with Container(id="display-container"):
             yield Label(self.display_text, id="reader-display")
 
-        with Horizontal(id="status-bar"):
+        with Container(id="status-bar"):
+            yield ProgressBar(total=100, show_eta=False, show_percentage=False)
             yield Label("1.0x (188 WPM)", id="speed-indicator")
-            yield ProgressBar(total=100, show_eta=False)
 
         yield Footer()
 
-    def action_quit(self) -> None:
+    async def action_quit(self) -> None:
         self.exit()
 
     def action_toggle_pause(self) -> None:

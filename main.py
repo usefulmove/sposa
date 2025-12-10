@@ -11,7 +11,7 @@ def sposa() -> None:
 
     words: tuple[str, ...]
     with open(filename, "r") as file:
-        words = tuple( word.lower() for word in file.read().split() )
+        words = tuple(word.lower() for word in file.read().split())
 
     os.system("clear")
 
@@ -53,7 +53,6 @@ def read_word(message: str, secs: float) -> None:
 
     sys.stdout.write("\r\033[2K" + f"    {message} ")
     sys.stdout.flush()
-
 
 
 if __name__ == "__main__":
