@@ -5,8 +5,9 @@ Sposa is an RSVP (Rapid Serial Visual Presentation) reader application built wit
 It has migrated from a raw `sys.stdout` prototype to a robust, event-driven TUI application.
 
 ## Running the Application
-- Run the TUI: `uv run python sposa_tui.py <filename>`
-- Example: `uv run python sposa_tui.py meditations`
+- Run the TUI: `uv run sposa <filename>`
+- Example: `uv run sposa meditations`
+- Alternative (raw prototype): `uv run python main.py <filename>`
 - Dependency Management: Uses `uv` for package management.
 
 ## Build/Lint/Test Commands

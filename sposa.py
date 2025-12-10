@@ -1,9 +1,16 @@
+#!/usr/bin/env python
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Label, ProgressBar
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
 from rich.text import Text
 import sys
+
+
+def main() -> None:
+    """Run the Sposa TUI app."""
+    app = SposaApp()
+    app.run()
 
 
 def get_orp_index(word: str) -> int:
@@ -43,7 +50,7 @@ def format_word_with_orp(word: str) -> Text:
         text.append(word[:orp_idx])
 
     # Add the ORP letter (highlighted)
-    text.append(word[orp_idx], style="#82899c")
+    text.append(word[orp_idx], style="#cba6f7")
 
     # Add characters after ORP
     if orp_idx < len(word) - 1:
@@ -124,7 +131,7 @@ class SposaApp(App):
     }
     
     Bar > .bar--complete {
-        color: $green;
+        color: $overlay0;
         background: $surface0;
     }
     
@@ -184,14 +191,14 @@ class SposaApp(App):
                 self.words = [word.lower() for word in file.read().split()]
         except (IndexError, FileNotFoundError):
             self.words = [
-                "sposa",
+                "sposa.",
                 "ready",
                 "to",
-                "read",
+                "read.",
                 "please",
                 "provide",
                 "a",
-                "file",
+                "file.",
             ]
 
         if self.words:
@@ -317,5 +324,4 @@ class SposaApp(App):
 
 
 if __name__ == "__main__":
-    app = SposaApp()
-    app.run()
+    main()
