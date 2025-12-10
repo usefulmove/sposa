@@ -166,10 +166,10 @@ class SposaApp(App):
         ("space", "toggle_pause", "play/pause"),
         ("up", "increase_speed", "faster"),
         ("down", "decrease_speed", "slower"),
-        ("left", "prev_word", "back"),
-        ("right", "next_word", "forward"),
-        ("h", "prev_word", None),
-        ("l", "next_word", None),
+        ("left", "prev_sentence", "back"),
+        ("right", "next_sentence", "forward"),
+        ("h", "prev_sentence", None),
+        ("l", "next_sentence", None),
         ("k", "increase_speed", None),
         ("j", "decrease_speed", None),
     ]
@@ -274,9 +274,11 @@ class SposaApp(App):
             pass
 
     def watch_current_index(self, value: int) -> None:
-        """Update progress bar when index changes."""
+        """Update progress bar and display when index changes."""
         try:
             self.query_one(ProgressBar).progress = value
+            if self.is_paused and self.words:
+                self.display_text = format_word_with_orp(self.words[value])
         except Exception:
             pass
 
@@ -316,11 +318,37 @@ class SposaApp(App):
     def action_decrease_speed(self) -> None:
         self.wpm_multiplier = max(0.1, self.wpm_multiplier - 0.1)
 
-    def action_prev_word(self) -> None:
-        self.current_index = max(0, self.current_index - 10)
+    def action_prev_sentence(self) -> None:
+        """Jump to the start of the current or previous sentence."""
+        sentence_start = self._find_sentence_start(self.current_index)
 
-    def action_next_word(self) -> None:
-        self.current_index = min(len(self.words) - 1, self.current_index + 10)
+        if self.current_index == sentence_start and sentence_start > 0:
+            self.current_index = self._find_sentence_start(sentence_start - 1)
+        else:
+            self.current_index = sentence_start
+
+    def action_next_sentence(self) -> None:
+        """Jump to the start of the next sentence."""
+        self.current_index = self._find_next_sentence_start(self.current_index)
+
+    def _find_sentence_start(self, from_index: int) -> int:
+        """Find the index of the first word of the sentence containing from_index."""
+        if from_index <= 0:
+            return 0
+
+        for i in range(from_index - 1, -1, -1):
+            word = self.words[i]
+            if word and word[-1] in ".!?":
+                return i + 1
+        return 0
+
+    def _find_next_sentence_start(self, from_index: int) -> int:
+        """Find the index of the first word of the next sentence after from_index."""
+        for i in range(from_index, len(self.words)):
+            word = self.words[i]
+            if word and word[-1] in ".!?":
+                return min(i + 1, len(self.words) - 1)
+        return len(self.words) - 1
 
 
 if __name__ == "__main__":
