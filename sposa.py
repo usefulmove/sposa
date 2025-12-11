@@ -37,7 +37,7 @@ def format_word_with_orp(word: str) -> Text:
         word: The word to format.
 
     Returns:
-        A Rich Text object with the ORP letter dimmed.
+        A Rich Text object with the ORP letter formatted.
     """
     if not word:
         return Text("")
@@ -50,7 +50,7 @@ def format_word_with_orp(word: str) -> Text:
         text.append(word[:orp_idx])
 
     # Add the ORP letter (highlighted)
-    text.append(word[orp_idx], style="#cba6f7")
+    text.append(word[orp_idx], style="#0080ff")
 
     # Add characters after ORP
     if orp_idx < len(word) - 1:
