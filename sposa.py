@@ -59,6 +59,22 @@ def format_word_with_orp(word: str) -> Text:
     return text
 
 
+def load_words_from_file(filename: str) -> list[str]:
+    """Load and process words from a file.
+
+    Args:
+        filename: Path to the text file to load.
+
+    Returns:
+        List of lowercase words from the file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
+    with open(filename, "r") as file:
+        return [word.lower() for word in file.read().split()]
+
+
 class SposaApp(App):
     """A Textual app for RSVP reading."""
 
@@ -182,23 +198,37 @@ class SposaApp(App):
     # Internal state
     words: list[str] = []
 
+    def __init__(self, words: list[str] | None = None):
+        """Initialize the Sposa app.
+
+        Args:
+            words: Optional pre-loaded word list for testing.
+                   If None, words will be loaded from file in on_mount.
+        """
+        super().__init__()
+        self._initial_words = words
+
     def on_mount(self) -> None:
         """Load content and start the reader."""
-        try:
-            filename = sys.argv[1]
-            with open(filename, "r") as file:
-                self.words = [word.lower() for word in file.read().split()]
-        except (IndexError, FileNotFoundError):
-            self.words = [
-                "sposa.",
-                "ready",
-                "to",
-                "read.",
-                "please",
-                "provide",
-                "a",
-                "file.",
-            ]
+        if self._initial_words is not None:
+            # Use pre-loaded words (for testing)
+            self.words = self._initial_words
+        else:
+            # Load from file via command line
+            try:
+                filename = sys.argv[1]
+                self.words = load_words_from_file(filename)
+            except (IndexError, FileNotFoundError):
+                self.words = [
+                    "sposa.",
+                    "ready",
+                    "to",
+                    "read.",
+                    "please",
+                    "provide",
+                    "a",
+                    "file.",
+                ]
 
         if self.words:
             self.display_text = format_word_with_orp(self.words[0])

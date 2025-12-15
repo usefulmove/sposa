@@ -11,10 +11,11 @@ It has migrated from a raw `sys.stdout` prototype to a robust, event-driven TUI 
 - Dependency Management: Uses `uv` for package management.
 
 ## Build/Lint/Test Commands
-- Run tests: `python -m pytest`
-- Linting: `ruff check .`
-- Formatting: `ruff format .`
-- Type checking: `ty check .`
+- Run tests: `uv run pytest`
+- Run specific test: `uv run pytest -xvs tests/test_specific.py::test_function`
+- Linting: `uv run ruff check .`
+- Formatting: `uv run ruff format .`
+- Type checking: `uv run ty check .`
 
 ## Code Style Guidelines
 - Use Python 3.13+ syntax.
@@ -38,9 +39,9 @@ It has migrated from a raw `sys.stdout` prototype to a robust, event-driven TUI 
 ## Testing
 - Write unit tests for logic where possible.
 - TUI interaction tests can be complex; prioritize testing the underlying logic (e.g., text splitting, delay calculations).
-- Run a single test with: `python -m pytest -xvs tests/test_specific.py::test_function`
+- Run a single test with: `uv run pytest -xvs tests/test_specific.py::test_function`
 
 ## Code Quality
 - Keep functions small and focused.
-- Run linters (`ruff`) before committing.
-- Format code (`ruff format`) before pushing.
+- Run linters (`uv run ruff check .`) before committing.
+- Format code (`uv run ruff format .`) before pushing.
