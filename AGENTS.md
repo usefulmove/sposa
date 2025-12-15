@@ -4,8 +4,14 @@
 Sposa is an RSVP (Rapid Serial Visual Presentation) reader application built with Python and [Textual](https://textual.textualize.io/).
 It has migrated from a raw `sys.stdout` prototype to a robust, event-driven TUI application.
 
+### Configuration
+- **Base WPM**: 244 (configurable via BASE_WPM constant in sposa.py)
+- **Speed range**: 0.1x - 2.8x (24.4 - 683.2 WPM)
+- **Input sources**: Files, clipboard (via pyperclip)
+
 ## Running the Application
 - Run the TUI: `uv run sposa <filename>`
+- Run from clipboard: `uv run sposa :clipboard:` or `uv run sposa --clipboard`
 - Example: `uv run sposa meditations`
 - Alternative (raw prototype): `uv run python main.py <filename>`
 - Dependency Management: Uses `uv` for package management.

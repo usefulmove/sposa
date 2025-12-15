@@ -1,15 +1,99 @@
 #!/usr/bin/env python
+import argparse
+import sys
+from typing import Literal
+
+from rich.text import Text
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Label, ProgressBar
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
-from rich.text import Text
-import sys
+from textual.widgets import Footer, Label, ProgressBar
+
+# Configuration constants
+BASE_WPM = 244  # Base words per minute
+MIN_SPEED_MULTIPLIER = 0.1
+MAX_SPEED_MULTIPLIER = 2.8
+
+
+def parse_arguments() -> tuple[Literal["file", "clipboard"], str | None]:
+    """Parse command-line arguments.
+
+    Returns:
+        Tuple of (source_type, filename_or_none):
+        - ("file", "path.txt") if file provided
+        - ("clipboard", None) if clipboard requested
+        - Exits with usage message if no valid args
+
+    Usage:
+        sposa <filename>        # Read from file
+        sposa :clipboard:       # Read from clipboard (keyword)
+        sposa --clipboard       # Read from clipboard (flag)
+    """
+    parser = argparse.ArgumentParser(
+        prog="sposa",
+        description="Sposa RSVP Reader - Read text at high speed with Optimal Recognition Point highlighting",
+        epilog="Controls: space=pause, ↑↓=speed, ←→=sentences, q=quit",
+    )
+
+    parser.add_argument(
+        "source",
+        nargs="?",
+        help="Text file to read, or ':clipboard:' to read from clipboard",
+    )
+
+    parser.add_argument(
+        "--clipboard", action="store_true", help="Read text from system clipboard"
+    )
+
+    args = parser.parse_args()
+
+    # Determine source
+    if args.clipboard or (args.source and args.source.lower() == ":clipboard:"):
+        return ("clipboard", None)
+    elif args.source:
+        return ("file", args.source)
+    else:
+        # No arguments - show help and exit
+        parser.print_help()
+        sys.exit(0)
 
 
 def main() -> None:
-    """Run the Sposa TUI app."""
-    app = SposaApp()
+    """Run the Sposa TUI app.
+
+    Parses arguments, loads text from file or clipboard,
+    and launches the TUI. Exits with error message if
+    input is invalid or unavailable.
+    """
+    # Parse arguments
+    source_type, filename = parse_arguments()
+
+    # Load words based on source
+    try:
+        if source_type == "clipboard":
+            text = load_text_from_clipboard()
+            words = load_words_from_text(text)
+        else:  # source_type == "file"
+            if filename is None:
+                raise ValueError("No filename provided")
+            words = load_words_from_file(filename)
+    except FileNotFoundError:
+        print(f"Error: File not found: {filename}", file=sys.stderr)
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # Validate we have words
+    if not words:
+        print("Error: No text to read", file=sys.stderr)
+        sys.exit(1)
+
+    # Launch TUI with pre-loaded words
+    app = SposaApp(words=words)
     app.run()
 
 
@@ -59,6 +143,18 @@ def format_word_with_orp(word: str) -> Text:
     return text
 
 
+def load_words_from_text(text: str) -> list[str]:
+    """Process raw text into word list.
+
+    Args:
+        text: Raw text content.
+
+    Returns:
+        List of lowercase words.
+    """
+    return [word.lower() for word in text.split()]
+
+
 def load_words_from_file(filename: str) -> list[str]:
     """Load and process words from a file.
 
@@ -72,7 +168,30 @@ def load_words_from_file(filename: str) -> list[str]:
         FileNotFoundError: If the file does not exist.
     """
     with open(filename, "r") as file:
-        return [word.lower() for word in file.read().split()]
+        return load_words_from_text(file.read())
+
+
+def load_text_from_clipboard() -> str:
+    """Load text from system clipboard.
+
+    Returns:
+        Raw text content from clipboard.
+
+    Raises:
+        ValueError: If clipboard is empty or contains only whitespace.
+        RuntimeError: If clipboard is unavailable (e.g., no display in headless environment).
+    """
+    try:
+        import pyperclip
+
+        text = pyperclip.paste()
+    except Exception as e:
+        raise RuntimeError(f"Failed to access clipboard: {e}") from e
+
+    if not text or not text.strip():
+        raise ValueError("Clipboard is empty or contains only whitespace")
+
+    return text
 
 
 class SposaApp(App):
@@ -209,26 +328,13 @@ class SposaApp(App):
         self._initial_words = words
 
     def on_mount(self) -> None:
-        """Load content and start the reader."""
+        """Initialize the reader with pre-loaded words."""
+        # Words are guaranteed to be loaded by main() or test setup
         if self._initial_words is not None:
-            # Use pre-loaded words (for testing)
             self.words = self._initial_words
         else:
-            # Load from file via command line
-            try:
-                filename = sys.argv[1]
-                self.words = load_words_from_file(filename)
-            except (IndexError, FileNotFoundError):
-                self.words = [
-                    "sposa.",
-                    "ready",
-                    "to",
-                    "read.",
-                    "please",
-                    "provide",
-                    "a",
-                    "file.",
-                ]
+            # This should never happen in production
+            raise ValueError("SposaApp must be initialized with words")
 
         if self.words:
             self.display_text = format_word_with_orp(self.words[0])
@@ -314,7 +420,7 @@ class SposaApp(App):
     def watch_wpm_multiplier(self, value: float) -> None:
         """Update speed indicator."""
         try:
-            wpm = int(188 * value)
+            wpm = int(BASE_WPM * value)
             self.query_one("#speed-indicator", Label).update(
                 f"{value:.1f}x ({wpm} wpm)"
             )
@@ -327,7 +433,7 @@ class SposaApp(App):
             yield Label(self.display_text, id="reader-display")
 
         with Vertical(id="bottom-section"):
-            yield Label("1.0x (188 wpm)", id="speed-indicator")
+            yield Label(f"1.0x ({BASE_WPM} wpm)", id="speed-indicator")
             yield ProgressBar(total=100, show_eta=False, show_percentage=False)
             yield Footer()
 
@@ -342,10 +448,10 @@ class SposaApp(App):
             self.is_paused = not self.is_paused
 
     def action_increase_speed(self) -> None:
-        self.wpm_multiplier = min(2.8, self.wpm_multiplier + 0.1)
+        self.wpm_multiplier = min(MAX_SPEED_MULTIPLIER, self.wpm_multiplier + 0.1)
 
     def action_decrease_speed(self) -> None:
-        self.wpm_multiplier = max(0.1, self.wpm_multiplier - 0.1)
+        self.wpm_multiplier = max(MIN_SPEED_MULTIPLIER, self.wpm_multiplier - 0.1)
 
     def action_prev_sentence(self) -> None:
         """Jump to the start of the current or previous sentence."""
